@@ -50,20 +50,30 @@ save_to_file()
 {
     timestamp="$(date +%Y%m%d%H%M%S)"
     filepath=$timestamp.png
-    import -window "$1" $targetdir/$filepath
+    $import_command -window "$1" $targetdir/$filepath
 }
 
 save_to_clipboard()
 {
     command_exists xclip || show_error "Could not find 'xclip' command. Install xclip."
-    import -quality 1 -window "$1" png:- | xclip -selection clipboard -t image/png
+    $import_command -quality 1 -window "$1" png:- | xclip -selection clipboard -t image/png
     if [ ! $? ]
     then
         show_error "Could not save image to clipboard"
     fi
 }
 
-command_exists import || show_error "Could not find 'import' command. Install imagemagick."
+
+
+if command_exists import
+then
+    import_command="import"
+elif command_exists gm
+then
+    import_command="gm import"
+else
+    show_error "Could not find 'import' nor 'gm' command. Install imagemagick or graphicsmagick."
+fi
 
 case $1 in
 screen|root)
