@@ -1,6 +1,84 @@
 #!/bin/sh
-timestamp="$(date +%Y%m%d%H%M%S)"
-targetbase="$HOME/capscr"
-mkdir -p $targetbase
-[ -d $targetbase ] || exit 1
-import -window root $targetbase/$timestamp.png
+
+targetdir="$HOME/capscr"
+
+command_exists()
+{
+    command -v $1 >/dev/null 2>&1
+}
+
+show_error()
+{
+    if command_exists notify-send
+    then
+        notify-send -u critical -t 4000 "$1"
+    elif command_exists zenity
+    then
+        zenity --error --text="$1"
+    elif command_exists kdialog
+    then
+        kdialog --error "$1"
+    else
+        echo -e $1 1>&2
+    fi
+    exit 1
+}
+
+show_success()
+{
+    if command_exists notify-send
+    then
+        notify-send -u low -t 4000 "$1"
+    else
+        echo $1
+    fi
+}
+
+create_output_directory()
+{
+    mkdir -p $targetdir
+    [ -d $targetdir ] || show_error "Could not create directory $targetdir"
+}
+
+get_active_window()
+{
+    command_exists xprop || show_error "Could not find 'xprop' command. Install x11-utils."
+    echo `xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | awk {'print $2'}`
+}
+
+save_to_file()
+{
+    timestamp="$(date +%Y%m%d%H%M%S)"
+    filepath=$timestamp.png
+    import -window "$1" $targetdir/$filepath
+}
+
+save_to_clipboard()
+{
+    command_exists xclip || show_error "Could not find 'xclip' command. Install xclip."
+    import -quality 1 -window "$1" png:- | xclip -selection clipboard -t image/png
+    if [ ! $? ]
+    then
+        show_error "Could not save image to clipboard"
+    fi
+}
+
+command_exists import || show_error "Could not find 'import' command. Install imagemagick."
+
+case $1 in
+screen|root)
+    save_to_file root
+    ;;
+window)
+    save_to_file $(get_active_window)
+    ;;
+screen-to-clip|screen-to-clipboard)
+    save_to_clipboard root
+    ;;
+window-to-clip|window-to-clipboard)
+    save_to_clipboard $(get_active_window)
+    ;;
+*)
+    save_to_clipboard root
+    ;;
+esac

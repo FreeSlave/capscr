@@ -1,3 +1,0 @@
-#!/bin/sh
-active_window=`xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | awk {'print $2'}`
-import -quality 1 -window $active_window png:- | xclip -selection clipboard -t image/png
