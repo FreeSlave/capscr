@@ -4,9 +4,9 @@ Capture screen or window in X using shell scripts
 
 Dependencies:
 
-1. xprop utility to find active window.
-2. ImageMagick, specifically 'import' utility.
-3. xclip to copy screenshot to clipboard.
+1. **xprop** utility to find active window.
+2. ImageMagick, specifically **import** utility.
+3. **xclip** to copy screenshot to clipboard.
 
 Optional dependencies:
 

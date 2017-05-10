@@ -4,7 +4,7 @@ targetdir="$HOME/capscr"
 
 command_exists()
 {
-    command -v $1 >/dev/null 2>&1
+    command -v "$1" >/dev/null 2>&1
 }
 
 show_error()
@@ -19,7 +19,7 @@ show_error()
     then
         kdialog --error "$1"
     else
-        echo -e $1 1>&2
+        echo "$1" 1>&2
     fi
     exit 1
 }
@@ -30,27 +30,27 @@ show_success()
     then
         notify-send -u low -t 4000 "$1"
     else
-        echo $1
+        echo "$1"
     fi
 }
 
 create_output_directory()
 {
-    mkdir -p $targetdir
-    [ -d $targetdir ] || show_error "Could not create directory $targetdir"
+    mkdir -p "$targetdir"
+    [ -d "$targetdir" ] || show_error "Could not create directory $targetdir"
 }
 
 get_active_window()
 {
     command_exists xprop || show_error "Could not find 'xprop' command. Install x11-utils."
-    echo `xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | awk {'print $2'}`
+    xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | awk '{print $2}'
 }
 
 save_to_file()
 {
     timestamp="$(date +%Y%m%d%H%M%S)"
     filepath=$timestamp.png
-    $import_command -window "$1" $targetdir/$filepath
+    $import_command -window "$1" "$targetdir/$filepath"
 }
 
 save_to_clipboard()
@@ -75,18 +75,20 @@ else
     show_error "Could not find 'import' nor 'gm' command. Install imagemagick or graphicsmagick."
 fi
 
-case $1 in
+case "$1" in
 screen|root)
+    create_output_directory
     save_to_file root
     ;;
 window)
-    save_to_file $(get_active_window)
+    create_output_directory
+    save_to_file "$(get_active_window)"
     ;;
 screen-to-clip|screen-to-clipboard)
     save_to_clipboard root
     ;;
 window-to-clip|window-to-clipboard)
-    save_to_clipboard $(get_active_window)
+    save_to_clipboard "$(get_active_window)"
     ;;
 *)
     save_to_clipboard root
